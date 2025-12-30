@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Forecast</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Arial', sans-serif;
+            transition: background 1s;
+        }
+
+        .weather-card {
+            max-width: 400px;
+            width: 100%;
+            padding: 30px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .weather-icon {
+            width: 100px;
+            height: 100px;
+        }
+
+        .temperature {
+            font-size: 1rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body id="weather-body">
+
+    <div class="weather-card text-center">
+        <h2 class="mb-4">Weather Forecast 🌤</h2>
+
+        <form method="POST" class="mb-4">
+            {% csrf_token %}
+            <div class="input-group">
+                <input type="text" name="city" class="form-control" placeholder="Enter city name" required>
+                <button class="btn btn-primary" type="submit">Check</button>
+            </div>
+        </form>
+
+        {% if weather_data %}
+        <div class="card shadow-sm mb-3">
+            <div class="card-body">
+                <h3 class="card-title">{{ weather_data.city }}</h3>
+                <img src="https://openweathermap.org/img/wn/{{ weather_data.icon }}@2x.png" class="weather-icon"
+                    alt="Weather icon">
+                <p class="card-text temperature" id="temp">🌡 Temperature: {{ weather_data.temperature }}°C (Feels
+                    like {{ weather_data.feels_like }}°C)</p>
+                <p class="card-text">☁ Description: {{ weather_data.description }}</p>
+                <p class="card-text">💧 Humidity: {{ weather_data.humidity }}%</p>
+                <p class="card-text">🌬 Wind Speed: {{ weather_data.wind_speed }} m/s</p>
+                <p class="card-text">☁ Cloudiness: {{ weather_data.clouds }}%</p>
+                <p class="card-text">🌧 Rain (last 1h): {{ weather_data.rain }} mm</p>
+                <p class="card-text">❄ Snow (last 1h): {{ weather_data.snow }} mm</p>
+                <p class="card-text">🌅 Sunrise: {{ weather_data.sunrise }} | 🌇 Sunset: {{ weather_data.sunset }}</p>
+                <p class="card-text">🔵 Pressure: {{ weather_data.pressure }} hPa</p>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if error %}
+        <div class="alert alert-danger" role="alert">
+            {{ error }}
+        </div>
+        {% endif %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    {% if weather_data %}
+    <script>
+        let description = "{{ weather_data.description }}".toLowerCase();
+        let body = document.getElementById('weather-body');
+
+        if (description.includes("cloud")) {
+            body.style.background = "linear-gradient(to right, #D7D2CC, #304352)";
+        } else if (description.includes("rain")) {
+            body.style.background = "linear-gradient(to right, #4e54c8, #8f94fb)";
+        } else if (description.includes("sun") || description.includes("clear")) {
+            body.style.background = "linear-gradient(to right, #fceabb, #f8b500)";
+        } else if (description.includes("snow")) {
+            body.style.background = "linear-gradient(to right, #e0eafc, #cfdef3)";
+        } else {
+            body.style.background = "linear-gradient(to right, #74ebd5, #ACB6E5)";
+        }
+
+        let tempElement = document.getElementById('temp');
+        let tempText = "{{ weather_data.temperature }}";
+        let tempValue = parseInt(tempText);
+        tempElement.innerText = "🌡 Temperature: 0°C";
+
+        let current = 0;
+        let step = tempValue > 0 ? 1 : -1;
+        let interval = setInterval(() => {
+            if (current === tempValue) clearInterval(interval);
+            tempElement.innerText = `🌡 Temperature: ${current}°C (Feels like {{ weather_data.feels_like }}°C)`;
+            current += step;
+        }, 50);
+    </script>
+    {% endif %}
+</body>
+
+</html>
